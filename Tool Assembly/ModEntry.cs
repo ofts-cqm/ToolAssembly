@@ -230,24 +230,6 @@ namespace Tool_Assembly
         
         public void ButtonPressed(object? sender, ButtonPressedEventArgs args)
         {
-            //Monitor.Log($"{Game1.player.ActiveItem?.modData.ToArray()}", LogLevel.Info);
-            /*if (Context.IsWorldReady && Game1.activeClickableMenu == null && Game1.player.ActiveItem != null &&
-                TryGetValue("ofts.toolAss.id", out string id)
-                && long.TryParse(id, out long longid) && metaData.TryGetValue(longid, out var inventory)
-                && inventory.Count > 1)
-            {
-                int indexPlayer = Game1.player.Items.IndexOf(Game1.player.ActiveItem);
-
-                if (Config.Next.JustPressed())
-                {
-                    Game1.player.Items[indexPlayer] = inventory[(indices[longid] + 1) % inventory.Count];
-                }
-
-                else if(Config.Prev.JustPressed())
-                {
-                    Game1.player.Items[indexPlayer] = inventory[(indices[longid] + inventory.Count - 1) % inventory.Count];
-                }
-            }*/
             if (Context.IsWorldReady && Game1.activeClickableMenu == null && Game1.player.ActiveItem != null &&
                 TryGetValue("ofts.toolAss.id", out string id))
             {
