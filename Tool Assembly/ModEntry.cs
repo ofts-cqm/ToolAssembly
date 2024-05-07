@@ -13,7 +13,6 @@ using StardewValley.Menus;
 using StardewValley.GameData.Locations;
 using xTile;
 using StardewValley.Objects;
-using xTile.Dimensions;
 
 namespace Tool_Assembly
 {
@@ -281,7 +280,6 @@ namespace Tool_Assembly
             Inventory inv = new();
             inv.AddRange(new List<Item>(36));
             inv.OnSlotChanged += (inv, index, before, after) => {
-                //inv.RemoveEmptySlots();
                 if (before != null && before is Tool)
                 {
                     before.modData.Remove("ofts.toolAss.id");
