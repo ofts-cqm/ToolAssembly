@@ -40,9 +40,9 @@ namespace Tool_Assembly
 
             GameLocation location = Game1.getLocationFromName("aVeryVeryStrangeFourDimentionalSpaceThatStoresPlayersToolsStoredInToolAssemblyBecauseIDontKnowHowToSerizeTheDatasSoIDescideToLetTheGameItselfStoreTheDataForMeHaHaHaIAmSoSmart");
 
-            for (int i = 0; i < 128; i++)
+            for (int i = 0; i < 1; i++)
             {
-                for (int j = 0; j < 128; j++)
+                for (int j = 0; j < 1; j++)
                 {
                     if(metaData.ContainsKey(i * 128 + j))
                     {
@@ -73,26 +73,17 @@ namespace Tool_Assembly
 
             GameLocation location = Game1.getLocationFromName("aVeryVeryStrangeFourDimentionalSpaceThatStoresPlayersToolsStoredInToolAssemblyBecauseIDontKnowHowToSerizeTheDatasSoIDescideToLetTheGameItselfStoreTheDataForMeHaHaHaIAmSoSmart");
 
-            for(int i = 0; i < 128; i++)
-            {
-                for(int j = 0; j < 128; j++)
-                {
+            for (int i = 0; i < 128; i++)
+                for (int j = 0; j < 128; j++)
                     if (location.Objects.TryGetValue(new Vector2(i, j), out var tmp) && tmp is Chest chest && chest.GetItemsForPlayer() is Inventory inv)
                     {
                         metaData.Add(i * 128 + j, inv);
                         indices.Add(i * 128 + j, 0);
                     }
-                }
-            }
 
             if(int.TryParse(Helper.Data.ReadSaveData<string>("ofts.toolInd"), out int ind))
-            {
                 topIndex.Value = ind;
-            }
-            else
-            {
-                topIndex.Value = 0;
-            }
+            else topIndex.Value = 0;
         }
 
         public void command(string c, string[] n)
