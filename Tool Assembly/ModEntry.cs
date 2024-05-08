@@ -36,6 +36,11 @@ namespace Tool_Assembly
             Config = Helper.ReadConfig<ModConfig>();
         }
 
+        public override object? GetApi()
+        {
+            return new ToolAPIBase();
+        }
+
         public void launched(object? sender, LoadStageChangedEventArgs e)
         {
             if (e.NewStage != StardewModdingAPI.Enums.LoadStage.SaveAddedLocations
