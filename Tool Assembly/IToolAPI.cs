@@ -4,6 +4,10 @@ using StardewValley.Tools;
 
 namespace Tool_Assembly
 {
+    /// <summary>
+    /// This API provides you convenient operation of Tool Assembly, 
+    /// by allows you to modify the items and create new tools. 
+    /// </summary>
     public interface IToolAPI
     {
         /// <summary>
