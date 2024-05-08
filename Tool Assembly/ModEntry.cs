@@ -13,6 +13,7 @@ using StardewValley.Menus;
 using StardewValley.GameData.Locations;
 using xTile;
 using StardewValley.Objects;
+using GenericModConfigMenu;
 
 namespace Tool_Assembly
 {
@@ -30,10 +31,39 @@ namespace Tool_Assembly
             Helper.Events.GameLoop.SaveCreated += onSaveCreated;
             Helper.Events.GameLoop.SaveLoaded += load;
             Helper.Events.GameLoop.DayEnding += save;
+            Helper.Events.GameLoop.GameLaunched += initAPI;
             Helper.Events.GameLoop.Saving += (a, b) => { Helper.Data.WriteSaveData("ofts.toolInd", topIndex.Value.ToString()); };
             Helper.Events.Specialized.LoadStageChanged += launched;
             Helper.ConsoleCommands.Add("tool", "", command);
             Config = Helper.ReadConfig<ModConfig>();
+        }
+
+        public void initAPI(object? sender, GameLaunchedEventArgs e)
+        {
+            var configMenu = Helper.ModRegistry.GetApi<IGenericModConfigMenuApi>("spacechase0.GenericModConfigMenu");
+            if (configMenu is null)
+                return;
+
+            // register mod
+            configMenu.Register(
+                mod: ModManifest,
+                reset: () => Config = new ModConfig(),
+                save: () => Helper.WriteConfig(Config)
+            );
+
+            configMenu.AddKeybindList(
+                mod: ModManifest,
+                getValue: () => Config.Prev,
+                setValue: value => Config.Prev = value,
+                name: () => Helper.Translation.Get("left")
+            );
+
+            configMenu.AddKeybindList(
+                mod: ModManifest,
+                getValue: () => Config.Next,
+                setValue: value => Config.Next = value,
+                name: () => Helper.Translation.Get("right_name")
+            );
         }
 
         public override object? GetApi()
