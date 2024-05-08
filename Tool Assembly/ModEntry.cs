@@ -29,20 +29,32 @@ namespace Tool_Assembly
             Helper.Events.Input.ButtonPressed += ButtonPressed;
             Helper.Events.GameLoop.SaveCreated += onSaveCreated;
             Helper.Events.GameLoop.SaveLoaded += load;
-            Helper.Events.GameLoop.Saving += save;
+            Helper.Events.GameLoop.DayEnding += save;
+            Helper.Events.GameLoop.Saving += (a, b) => { Helper.Data.WriteSaveData("ofts.toolInd", topIndex.Value.ToString()); };
+            Helper.Events.Specialized.LoadStageChanged += launched;
             Helper.ConsoleCommands.Add("tool", "", command);
             Config = Helper.ReadConfig<ModConfig>();
         }
 
-        public void save(object? sender, SavingEventArgs args)
+        public void launched(object? sender, LoadStageChangedEventArgs e)
+        {
+            if (e.NewStage != StardewModdingAPI.Enums.LoadStage.SaveAddedLocations
+                && e.NewStage != StardewModdingAPI.Enums.LoadStage.CreatedLocations) return;
+            string? assetName = Helper.ModContent.GetInternalAssetName("assets/map.tmx").ToString();
+
+            GameLocation location = new GameLocation(assetName, "aVeryVeryStrangeFourDimentionalSpaceThatStoresPlayersToolsStoredInToolAssemblyBecauseIDontKnowHowToSerizeTheDatasSoIDescideToLetTheGameItselfStoreTheDataForMeHaHaHaIAmSoSmart") { IsOutdoors = false, IsFarm = false };
+            Game1.locations.Add(location);
+        }
+
+        public void save(object? sender, DayEndingEventArgs args)
         {
             if(!Context.IsMainPlayer) return;
 
             GameLocation location = Game1.getLocationFromName("aVeryVeryStrangeFourDimentionalSpaceThatStoresPlayersToolsStoredInToolAssemblyBecauseIDontKnowHowToSerizeTheDatasSoIDescideToLetTheGameItselfStoreTheDataForMeHaHaHaIAmSoSmart");
 
-            for (int i = 0; i < 1; i++)
+            for (int i = 0; i < 128; i++)
             {
-                for (int j = 0; j < 1; j++)
+                for (int j = 0; j < 128; j++)
                 {
                     if(metaData.ContainsKey(i * 128 + j))
                     {
@@ -61,8 +73,6 @@ namespace Tool_Assembly
                     }
                 }
             }
-
-            Helper.Data.WriteSaveData("ofts.toolInd", topIndex.Value.ToString());
         }
 
         public void load(object? sender, SaveLoadedEventArgs args)
@@ -265,29 +275,14 @@ namespace Tool_Assembly
             }
         }
 
-        public void assignNewInventory(Tool tool)
+        public int assignNewInventory(Tool tool)
         {
             tool.modData.Add("ofts.toolAss.id", $"{topIndex.Value}");
             Inventory inv = new();
             inv.AddRange(new List<Item>(36));
-            inv.OnSlotChanged += (inv, index, before, after) => {
-                if (before != null && before is Tool)
-                {
-                    before.modData.Remove("ofts.toolAss.id");
-                }
-                if (after != null && after is Tool)
-                {
-                    if (Game1.player.ActiveItem is not Tool t)
-                    {
-                        throw new InvalidOperationException("Inventory Changed Outside of menu, unknown id!");
-                    }
-                    else {
-                        after.modData.Add("ofts.toolAss.id", t.modData["ofts.toolAss.id"]);
-                    }
-                }
-            };
             metaData.Add(topIndex.Value, inv);
             indices.Add(topIndex.Value++, 0);
+            return topIndex.Value - 1;
         }
 
         public void clickConfigTable()
@@ -320,7 +315,8 @@ namespace Tool_Assembly
                                     throw new InvalidOperationException("WTF Why current menu is not IGM?!!");
                                 else menu.heldItem = null;
                                 if (i.Count < 36) {
-                                    i.Add(a); 
+                                    i.Add(a);
+                                    a.modData.Add("ofts.toolAss.id", Game1.player.ActiveItem.modData["ofts.toolAss.id"]);
                                     Game1.player.Items.Remove(a);
                                 } 
                             }, "",
@@ -341,6 +337,7 @@ namespace Tool_Assembly
                                     }
                                     i.Remove(a);
                                     i.RemoveEmptySlots();
+                                    a.modData.Remove("ofts.toolAss.id");
                                 } 
                             }
                         );
