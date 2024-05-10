@@ -212,8 +212,8 @@ namespace Tool_Assembly
                         DisplayName = "[LocalizedText Strings\\ofts_toolass:display_cris]",
                         Description = "[LocalizedText Strings\\ofts_toolass:descrip_cris]",
                         Type = "Basic",
-                        Category = -2,
-                        Price = 100000,
+                        Category = -999,
+                        Price = 10000,
                         Texture = "toolAss/asset/texture",
                         SpriteIndex = 26,
                         CanBeGivenAsGift = false,
@@ -255,7 +255,7 @@ namespace Tool_Assembly
                     data.Items.Add(wand);
                     ShopItemData cris = new()
                     {
-                        Price = 200000,
+                        Price = 20000,
                         Id = "ofts.shop.cris",
                         ItemId = "(O)ofts.wandCris",
                     };
@@ -364,8 +364,9 @@ namespace Tool_Assembly
             {
                 clickConfigTable();
             }
-            else if (TryGetValue("ofts.toolAss.id", out string invId) && long.TryParse(invId, out long invNum) 
-                && metaData.TryGetValue(invNum, out var invt) && invt.Contains(ItemRegistry.Create("ofts.wandcris")))
+            else if (Game1.player.ActiveItem != null && TryGetValue("ofts.toolAss.id", out string invId) 
+                && long.TryParse(invId, out long invNum) 
+                && metaData.TryGetValue(invNum, out var invt) && invt.GetById("(O)ofts.wandCris").Any())
             {
                 clickConfigTable();
             }
