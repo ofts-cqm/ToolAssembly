@@ -76,6 +76,13 @@ namespace Tool_Assembly
                 setValue: value => Config.Next = value,
                 name: () => Helper.Translation.Get("right_name")
             );
+
+            configMenu.AddBoolOption(
+                mod: ModManifest,
+                getValue: () => Config.giveToolWhenSaveCreated,
+                setValue: value => Config.giveToolWhenSaveCreated = value,
+                name: () => Helper.Translation.Get("giveTool")
+            );
         }
 
         public override object? GetApi()
@@ -173,6 +180,7 @@ namespace Tool_Assembly
 
         public void onSaveCreated(object? sender, SaveCreatedEventArgs e)
         {
+            if (!Config.giveToolWhenSaveCreated) return;
             Game1.player.addItemToInventory(ItemRegistry.Create("(T)ofts.toolAss"));
             Game1.player.addItemToInventory(ItemRegistry.Create("(BC)ofts.toolConfig"));
         }
@@ -267,7 +275,7 @@ namespace Tool_Assembly
                 args.Edit(asset =>
                 {
                     IDictionary<string, string> datas = asset.AsDictionary<string, string>().Data;
-                    datas.Add("Tool Configuation Table", "(BC)130 1 338 3 335 5 388 30/Home/ofts.toolConfig 1/true/default/");
+                    datas.Add("Tool Configuation Table", "(BC)130 1 335 5 388 30/Home/ofts.toolConfig 1/true/default/");
                 });
             }
             else if (args.NameWithoutLocale.IsEquivalentTo("toolAss/asset/texture"))
@@ -449,5 +457,6 @@ namespace Tool_Assembly
     {
         public KeybindList Next { get; set; } = KeybindList.Parse("Right");
         public KeybindList Prev { get; set; } = KeybindList.Parse("Left");
+        public bool giveToolWhenSaveCreated { get; set; } = true;
     }
 }
