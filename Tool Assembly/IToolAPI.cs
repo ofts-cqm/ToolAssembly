@@ -46,11 +46,19 @@ namespace Tool_Assembly
         /// <returns>exists for not</returns>
         bool doesIDExist(long id);
         /// <summary>
-        /// Allow items that are not tool to be treated as tool in this mod. Weapons are automatically treated as tool. 
+        /// Allow items that are not tool to be treated as tool in this mod. Weapons are automatically treated as tool. <br/>
+        /// Since this may be too cheaty (its not a shulker box! by the way, 
+        /// shulker box only has 27 slot this has 36, even more cheaty!), 
+        /// only api can change this setting, users can't. 
         /// </summary>
         /// <param name="QualifiedItemId">The qualified item id of the item that should be treated as tool</param>
         /// <remarks>Note that this only need to be called once, and for compatibility concern, 
         /// this will be synced for all farmhands, meaning guests don't need to call this (but you still can)</remarks>
         void treatThisItemAsTool(string QualifiedItemId);
+        /// <summary>
+        /// exactly same as <see cref="treatThisItemAsTool(string)"/>
+        /// </summary>
+        /// <param name="QualifiedItemIds">items to be treated as tool</param>
+        void treatTheseItemsAsTool(IEnumerable<string> QualifiedItemIds);
     }
 }

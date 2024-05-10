@@ -1,4 +1,5 @@
 ﻿using StardewValley;
+using StardewValley.Extensions;
 using StardewValley.Inventories;
 using StardewValley.Tools;
 
@@ -40,6 +41,8 @@ namespace Tool_Assembly
 
         public Inventory getToolContentWithTool(Item tool) => 
             getToolContentWithID(long.Parse(tool.modData["ofts.toolAss.id"]));
+
+        public void treatTheseItemsAsTool(IEnumerable<string> QualifiedItemIds) => ModEntry.items.AddRange(QualifiedItemIds);
 
         public void treatThisItemAsTool(string QualifiedItemId) => ModEntry.items.Add(QualifiedItemId);
     }
