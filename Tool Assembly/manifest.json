@@ -6,5 +6,5 @@
   "UniqueID": "ofts.toolAss",
   "EntryDll": "Tool Assembly.dll",
   "MinimumApiVersion": "4.0.0",
-  "UpdateKeys": [ ]
+  "UpdateKeys": [ "Nexus:23872", "GitHub:ofts-cqm/ToolAssembly" ]
 }

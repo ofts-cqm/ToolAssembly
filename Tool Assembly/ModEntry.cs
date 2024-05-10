@@ -392,7 +392,7 @@ namespace Tool_Assembly
 
         public void clickConfigTable()
         {
-            if (Context.IsWorldReady && Game1.activeClickableMenu == null)
+            if (Context.IsWorldReady && Game1.activeClickableMenu == null && Game1.player.ActiveItem != null)
             {
                 Item tool = Game1.player.ActiveItem;
                 if (isTool(tool) && (
