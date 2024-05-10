@@ -15,6 +15,8 @@ using xTile;
 using StardewValley.Objects;
 using GenericModConfigMenu;
 using StardewValley.Tools;
+using StardewValley.GameData.Objects;
+using StardewValley.GameData.Shops;
 
 namespace Tool_Assembly
 {
@@ -24,7 +26,7 @@ namespace Tool_Assembly
         public static readonly NetLongDictionary<Inventory, NetRef<Inventory>> metaData = new();
         public static readonly NetLongDictionary<int, NetInt> indices = new();
         public static readonly NetInt topIndex = new();
-        public static readonly NetStringHashSet items = new();
+        public static readonly NetStringHashSet items = new() { "(O)ofts.wandCris" };
 
         public override void Entry(IModHelper helper)
         {
@@ -199,6 +201,27 @@ namespace Tool_Assembly
                     datas.Add("ofts.toolAss", data);
                 });
             }
+            else if (args.NameWithoutLocale.IsEquivalentTo("Data/Objects"))
+            {
+                args.Edit(asset =>
+                {
+                    IDictionary<string, ObjectData> datas = asset.AsDictionary<string, ObjectData>().Data;
+                    ObjectData data = new()
+                    {
+                        Name = "Wand Cristal",
+                        DisplayName = "[LocalizedText Strings\\ofts_toolass:display_cris]",
+                        Description = "[LocalizedText Strings\\ofts_toolass:descrip_cris]",
+                        Type = "Basic",
+                        Category = -2,
+                        Price = 100000,
+                        Texture = "toolAss/asset/texture",
+                        SpriteIndex = 26,
+                        CanBeGivenAsGift = false,
+                        ExcludeFromShippingCollection = true
+                    };
+                    datas.Add("ofts.wandCris", data); ;
+                });
+            }
             else if (args.NameWithoutLocale.IsEquivalentTo("Data/BigCraftables"))
             {
                 args.Edit(asset =>
@@ -216,6 +239,27 @@ namespace Tool_Assembly
                         SpriteIndex = 6,
                     };
                     datas.Add("ofts.toolConfig", data);
+                });
+            }
+            else if (args.NameWithoutLocale.IsEquivalentTo("Data/Shops"))
+            {
+                args.Edit(asset => {
+                    IDictionary<string, ShopData> datas = asset.AsDictionary<string, ShopData>().Data;
+                    ShopData data = datas["AdventureShop"];
+                    ShopItemData wand = new()
+                    {
+                        Price = 2000,
+                        Id = "ofts.shop.wand",
+                        ItemId = "(T)ofts.toolAss",
+                    };
+                    data.Items.Add(wand);
+                    ShopItemData cris = new()
+                    {
+                        Price = 200000,
+                        Id = "ofts.shop.cris",
+                        ItemId = "(O)ofts.wandCris",
+                    };
+                    data.Items.Add(cris);
                 });
             }
             else if (args.NameWithoutLocale.IsEquivalentTo("Data/CraftingRecipes"))
@@ -242,7 +286,9 @@ namespace Tool_Assembly
                         { "display_table", Helper.Translation.Get("display_table") },
                         { "descrip_table", Helper.Translation.Get("descrip_table") },
                         { "display_tool", Helper.Translation.Get("display_tool") },
-                        { "descrip_tool", Helper.Translation.Get("descrip_tool") }
+                        { "descrip_tool", Helper.Translation.Get("descrip_tool") },
+                        { "display_cris", Helper.Translation.Get("display_cris") },
+                        { "descrip_cris", Helper.Translation.Get("descrip_cris") }
                     };
                 }, AssetLoadPriority.Low);
             }
