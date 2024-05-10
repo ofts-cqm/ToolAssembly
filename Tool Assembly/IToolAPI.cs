@@ -21,7 +21,7 @@ namespace Tool_Assembly
         /// </summary>
         /// <param name="tool">the tool</param>
         /// <returns>the content of this tool as an <see cref="Inventory"/></returns>
-        Inventory getToolContentWithTool(Tool tool);
+        Inventory getToolContentWithTool(Item tool);
         /// <summary>
         /// Create a new tool
         /// </summary>
@@ -45,5 +45,12 @@ namespace Tool_Assembly
         /// <param name="id">the id</param>
         /// <returns>exists for not</returns>
         bool doesIDExist(long id);
+        /// <summary>
+        /// Allow items that are not tool to be treated as tool in this mod. Weapons are automatically treated as tool. 
+        /// </summary>
+        /// <param name="QualifiedItemId">The qualified item id of the item that should be treated as tool</param>
+        /// <remarks>Note that this only need to be called once, and for compatibility concern, 
+        /// this will be synced for all farmhands, meaning guests don't need to call this (but you still can)</remarks>
+        void treatThisItemAsTool(string QualifiedItemId);
     }
 }

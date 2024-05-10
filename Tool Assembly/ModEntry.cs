@@ -14,6 +14,7 @@ using StardewValley.GameData.Locations;
 using xTile;
 using StardewValley.Objects;
 using GenericModConfigMenu;
+using StardewValley.Tools;
 
 namespace Tool_Assembly
 {
@@ -23,6 +24,7 @@ namespace Tool_Assembly
         public static readonly NetLongDictionary<Inventory, NetRef<Inventory>> metaData = new();
         public static readonly NetLongDictionary<int, NetInt> indices = new();
         public static readonly NetInt topIndex = new();
+        public static readonly NetStringHashSet items = new();
 
         public override void Entry(IModHelper helper)
         {
@@ -36,6 +38,14 @@ namespace Tool_Assembly
             Helper.Events.Specialized.LoadStageChanged += launched;
             Helper.ConsoleCommands.Add("tool", "", command);
             Config = Helper.ReadConfig<ModConfig>();
+        }
+
+        public bool isTool(Item item)
+        {
+            if(item is Tool) return true;
+            if(item is MeleeWeapon) return true;
+            if(items.Contains(item.QualifiedItemId)) return true;
+            return false;
         }
 
         public void initAPI(object? sender, GameLaunchedEventArgs e)
@@ -310,7 +320,7 @@ namespace Tool_Assembly
             }
         }
 
-        public int assignNewInventory(Tool tool)
+        public int assignNewInventory(Item tool)
         {
             tool.modData.Add("ofts.toolAss.id", $"{topIndex.Value}");
             Inventory inv = new();
@@ -324,7 +334,8 @@ namespace Tool_Assembly
         {
             if (Context.IsWorldReady && Game1.activeClickableMenu == null)
             {
-                if(Game1.player.ActiveItem is Tool tool && (
+                Item tool = Game1.player.ActiveItem;
+                if (isTool(tool) && (
                     TryGetValue("ofts.toolAss.id", out string id) || tool.Name == "toolAssembly"))
                 {
                     if (id == ""){
@@ -344,7 +355,7 @@ namespace Tool_Assembly
                             reverseGrab: false, showReceivingMenu: true, (item) => {
                                 if (item == null) return true;
                                 if (i.Contains(item)) return true;
-                                return item is Tool && !item.modData.ContainsKey("ofts.toolAss.id");
+                                return isTool(item) && !item.modData.ContainsKey("ofts.toolAss.id");
                             }, behaviorOnItemSelectFunction: (a, b) => {
                                 if (Game1.activeClickableMenu is not ItemGrabMenu menu)
                                     throw new InvalidOperationException("WTF Why current menu is not IGM?!!");

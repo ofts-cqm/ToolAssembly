@@ -38,7 +38,9 @@ namespace Tool_Assembly
 
         public Inventory getToolContentWithID(long id) => ModEntry.metaData[id];
 
-        public Inventory getToolContentWithTool(Tool tool) => 
+        public Inventory getToolContentWithTool(Item tool) => 
             getToolContentWithID(long.Parse(tool.modData["ofts.toolAss.id"]));
+
+        public void treatThisItemAsTool(string QualifiedItemId) => ModEntry.items.Add(QualifiedItemId);
     }
 }
