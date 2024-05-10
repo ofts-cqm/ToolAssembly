@@ -364,6 +364,11 @@ namespace Tool_Assembly
             {
                 clickConfigTable();
             }
+            else if (TryGetValue("ofts.toolAss.id", out string invId) && long.TryParse(invId, out long invNum) 
+                && metaData.TryGetValue(invNum, out var invt) && invt.Contains(ItemRegistry.Create("ofts.wandcris")))
+            {
+                clickConfigTable();
+            }
         }
 
         public int assignNewInventory(Item tool)
