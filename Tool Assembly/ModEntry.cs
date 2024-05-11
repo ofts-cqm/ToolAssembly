@@ -27,6 +27,7 @@ namespace Tool_Assembly
         public static readonly NetLongDictionary<int, NetInt> indices = new();
         public static readonly NetInt topIndex = new();
         public static readonly NetStringHashSet items = new() { "(O)ofts.wandCris" };
+        public static IModHelper _Helper;
 
         public override void Entry(IModHelper helper)
         {
@@ -35,11 +36,14 @@ namespace Tool_Assembly
             Helper.Events.GameLoop.SaveCreated += onSaveCreated;
             Helper.Events.GameLoop.SaveLoaded += load;
             Helper.Events.GameLoop.DayEnding += save;
+            Helper.Events.GameLoop.ReturnedToTitle += (a, b) => { metaData.Clear(); indices.Clear(); };
+            //Helper.Events.GameLoop.DayStarted += debug;
             Helper.Events.GameLoop.GameLaunched += initAPI;
             Helper.Events.GameLoop.Saving += (a, b) => { Helper.Data.WriteSaveData("ofts.toolInd", topIndex.Value.ToString()); };
             Helper.Events.Specialized.LoadStageChanged += launched;
             Helper.ConsoleCommands.Add("tool", "", command);
             Config = Helper.ReadConfig<ModConfig>();
+            _Helper = helper;
         }
 
         public bool isTool(Item item)
@@ -110,21 +114,21 @@ namespace Tool_Assembly
             {
                 for (int j = 0; j < 128; j++)
                 {
-                    if(metaData.ContainsKey(i * 128 + j))
+                    if (metaData.ContainsKey(i * 128 + j))
                     {
                         if (location.Objects.TryGetValue(new Vector2(i, j), out var tmp) && tmp is Chest chest)
                         {
-                            chest.GetItemsForPlayer().Clear();
-                            chest.GetItemsForPlayer().AddRange(metaData[i * 128 + j]);
+                            chest.Items.Clear();
+                            chest.Items.AddRange(metaData[i * 128 + j]);
                         }
                         else
                         {
                             Chest chest2 = new(true);
                             chest2.TileLocation = new Vector2(i, j);
-                            chest2.GetItemsForPlayer().AddRange(metaData[i * 128 + j]);
+                            chest2.Items.AddRange(metaData[i * 128 + j]);
                             location.Objects.Add(chest2.TileLocation, chest2);
                         }
-                    }
+                     }
                 }
             }
         }
@@ -139,9 +143,9 @@ namespace Tool_Assembly
 
             for (int i = 0; i < 128; i++)
                 for (int j = 0; j < 128; j++)
-                    if (location.Objects.TryGetValue(new Vector2(i, j), out var tmp) && tmp is Chest chest && chest.GetItemsForPlayer() is Inventory inv)
+                    if (location.Objects.TryGetValue(new Vector2(i, j), out var tmp) && tmp is Chest chest)
                     {
-                        metaData.Add(i * 128 + j, inv);
+                        metaData.Add(i * 128 + j, chest.Items);
                         indices.Add(i * 128 + j, 0);
                     }
 
@@ -183,6 +187,8 @@ namespace Tool_Assembly
             if (!Config.giveToolWhenSaveCreated) return;
             Game1.player.addItemToInventory(ItemRegistry.Create("(T)ofts.toolAss"));
             Game1.player.addItemToInventory(ItemRegistry.Create("(BC)ofts.toolConfig"));
+            metaData.Clear();
+            indices.Clear();
         }
 
         public void loadTool(object? sender, AssetRequestedEventArgs args)
