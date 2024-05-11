@@ -80,14 +80,28 @@ namespace Tool_Assembly
                 mod: ModManifest,
                 getValue: () => Config.Next,
                 setValue: value => Config.Next = value,
-                name: () => Helper.Translation.Get("right_name")
+                name: () => Helper.Translation.Get("right")
+            );
+
+            configMenu.AddKeybindList(
+                mod: ModManifest,
+                getValue: () => Config.EnableToolSwichKey,
+                setValue: value => Config.EnableToolSwichKey = value,
+                name: () => Helper.Translation.Get("toolswichkey")
             );
 
             configMenu.AddBoolOption(
                 mod: ModManifest,
-                getValue: () => Config.giveToolWhenSaveCreated,
-                setValue: value => Config.giveToolWhenSaveCreated = value,
+                getValue: () => Config.GiveToolWhenSaveCreated,
+                setValue: value => Config.GiveToolWhenSaveCreated = value,
                 name: () => Helper.Translation.Get("giveTool")
+            );
+
+            configMenu.AddBoolOption(
+                mod: ModManifest,
+                getValue: () => Config.EnableToolSwich,
+                setValue: value => Config.EnableToolSwich = value,
+                name: () => Helper.Translation.Get("toolswich")
             );
         }
 
@@ -186,7 +200,7 @@ namespace Tool_Assembly
 
         public void onSaveCreated(object? sender, SaveCreatedEventArgs e)
         {
-            if (!Config.giveToolWhenSaveCreated) return;
+            if (!Config.GiveToolWhenSaveCreated) return;
             Game1.player.addItemToInventory(ItemRegistry.Create("(T)ofts.toolAss"));
             Game1.player.addItemToInventory(ItemRegistry.Create("(BC)ofts.toolConfig"));
             metaData.Clear();
@@ -485,6 +499,8 @@ namespace Tool_Assembly
     {
         public KeybindList Next { get; set; } = KeybindList.Parse("Right");
         public KeybindList Prev { get; set; } = KeybindList.Parse("Left");
-        public bool giveToolWhenSaveCreated { get; set; } = true;
+        public KeybindList EnableToolSwichKey { get; set; } = KeybindList.Parse("Up");
+        public bool GiveToolWhenSaveCreated { get; set; } = true;
+        public bool EnableToolSwich { get; set; } = true;
     }
 }
