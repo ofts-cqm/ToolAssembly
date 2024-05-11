@@ -1,6 +1,8 @@
 ﻿using StardewValley.Inventories;
 using StardewValley;
 using StardewValley.Tools;
+using Microsoft.Xna.Framework;
+using StardewValley.TerrainFeatures;
 
 namespace Tool_Assembly
 {
@@ -60,5 +62,42 @@ namespace Tool_Assembly
         /// </summary>
         /// <param name="QualifiedItemIds">items to be treated as tool</param>
         void treatTheseItemsAsTool(IEnumerable<string> QualifiedItemIds);
+        /// <summary>
+        /// Get a function that returns the piority of this tool
+        /// When auto swich is enabled, the game will loop through all tools and calculate the piority of each tool.<br/>
+        /// </summary>
+        /// <param name="type">The <see href = "QualifiedItemId"/> of one specific item, OR, the <see cref="Type.ToString"/> of the category</param>
+        /// <returns>a function that returns the piority of this tool<br/>
+        /// This function will return a int value of the following:<br/>
+        /// -1, tool not applicable in this situation<br/>
+        /// 0, can use but not suitable<br/>
+        /// 1, suitable <br/>
+        /// 2, very suitable<br/>
+        /// 3, top piority, only choice<br/>
+        /// This function will use the following parameters:<br/>
+        /// GameLocation, the current location<br/>
+        /// Vector2, location of the current tile<br/>
+        /// ResourceClump, the resourceClump at that location<br/>
+        /// Item, the tool been examined. Note that this may not be the current tool!<br/>
+        /// The final piority will be adjusted according to upgrade level, you don't need to handle these logic by yourself. </returns>
+        Func<GameLocation, Vector2, ResourceClump?, Item, int> getToolSwichAlgroithmForThisType(string type);
+        /// <summary>
+        /// Set the piority calculation function of the specific type. 
+        /// When auto swich is enabled, the game will loop through all tools and calculate the piority of each tool.<br/>
+        /// </summary>
+        /// <param name="type">The <see href = "QualifiedItemId"/> of one specific item, OR, the <see cref="Type.ToString"/> of the category</param>
+        /// <param name="func">This function will return a int value of the following:<br/>
+        /// -1, tool not applicable in this situation<br/>
+        /// 0, can use but not suitable<br/>
+        /// 1, suitable <br/>
+        /// 2, very suitable<br/>
+        /// 3, top piority, only choice<br/>
+        /// This function will use the following parameters:<br/>
+        /// GameLocation, the current location<br/>
+        /// Vector2, location of the current tile<br/>
+        /// ResourceClump, the resourceClump at that location<br/>
+        /// Item, the tool been examined. Note that this may not be the current tool!<br/>
+        /// The final piority will be adjusted according to upgrade level, you don't need to handle these logic by yourself. </param>
+        void setToolSwichAlgroithmForThisType(string type, Func<GameLocation, Vector2, ResourceClump?, Item, int> func);
     }
 }

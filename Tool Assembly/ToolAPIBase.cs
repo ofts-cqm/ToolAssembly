@@ -1,6 +1,8 @@
-﻿using StardewValley;
+﻿using Microsoft.Xna.Framework;
+using StardewValley;
 using StardewValley.Extensions;
 using StardewValley.Inventories;
+using StardewValley.TerrainFeatures;
 using StardewValley.Tools;
 
 namespace Tool_Assembly
@@ -41,6 +43,16 @@ namespace Tool_Assembly
 
         public Inventory getToolContentWithTool(Item tool) => 
             getToolContentWithID(long.Parse(tool.modData["ofts.toolAss.id"]));
+
+        public Func<GameLocation, Vector2, ResourceClump?, Item, int> getToolSwichAlgroithmForThisType(string type)
+        {
+            return ToolSwitchHandler.switchLogic.TryGetValue(type, out var func) ? func : (a, b, c, d) => -1;
+        }
+
+        public void setToolSwichAlgroithmForThisType(string type, Func<GameLocation, Vector2, ResourceClump?, Item, int> func)
+        {
+            if(!ToolSwitchHandler.switchLogic.TryAdd(type, func)) ToolSwitchHandler.switchLogic[type] = func;
+        }
 
         public void treatTheseItemsAsTool(IEnumerable<string> QualifiedItemIds) => ModEntry.items.AddRange(QualifiedItemIds);
 

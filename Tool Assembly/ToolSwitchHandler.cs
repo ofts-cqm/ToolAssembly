@@ -297,6 +297,7 @@ namespace Tool_Assembly
                     float temppiority = func1.Invoke(location, position, clump, item);
                     if (item is Tool tool) temppiority += tool.UpgradeLevel * 0.1f;
                     if (item is MeleeWeapon weapon) temppiority += weapon.maxDamage.Value * 0.1f;
+                    else temppiority += item.Quality * 0.1f;
                     if(temppiority > maxPiority)
                     {
                         maxPiority = temppiority;
@@ -307,15 +308,13 @@ namespace Tool_Assembly
                 if (switchLogic.TryGetValue(item.GetType().ToString(), out var func2))
                 {
                     float temppiority = func2.Invoke(location, position, clump, item);
-                    //ModEntry._Monitor?.Log($"Calculated Tool Piority for {item.Name} is {temppiority}", LogLevel.Info);
                     if (item is Tool tool) temppiority += tool.UpgradeLevel * 0.1f;
                     if (item is MeleeWeapon weapon) temppiority += weapon.maxDamage.Value * 0.1f;
-                    //ModEntry._Monitor?.Log($"Calculated Adjusted is {temppiority}", LogLevel.Info);
+                    else temppiority += item.Quality * 0.1f;
                     if (temppiority > maxPiority)
                     {
                         maxPiority = temppiority;
                         currentItem = item;
-                        //ModEntry._Monitor?.Log($"Selecting {temppiority}", LogLevel.Info);
                     }
                 }
             }
