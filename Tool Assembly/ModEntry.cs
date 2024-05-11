@@ -357,6 +357,24 @@ namespace Tool_Assembly
                                 Game1.player.Items[indexPlayer] = inventory[(indices[longid] + inventory.Count - 1) % inventory.Count];
                                 indices[longid] = (indices[longid] + inventory.Count - 1) % inventory.Count;
                             }
+
+                            else
+                            {
+                                bool keydown = false;
+                                foreach (var key in Game1.options.useToolButton)
+                                {
+                                    if (args.IsDown(key.ToSButton()))
+                                    {
+                                        keydown = true;
+                                        break;
+                                    }
+                                }
+
+                                if (keydown)
+                                {
+                                    Game1.player.Items[indexPlayer] = ToolSwitchHandler.GetBestIndex(indices[longid], inventory);
+                                }
+                            }
                         }
                     }
                 }
@@ -372,18 +390,20 @@ namespace Tool_Assembly
                 }
             }
 
-            if (!keyPressed) return;
-            if (Game1.player.currentLocation.Objects.TryGetValue(Game1.player.GetGrabTile(), out var obj)
-                && obj.QualifiedItemId == "(BC)ofts.toolConfig")
+            if (keyPressed)
             {
-                clickConfigTable();
-            }
-            else if (Game1.player.ActiveItem != null && TryGetValue("ofts.toolAss.id", out string invId) 
-                && long.TryParse(invId, out long invNum) 
-                && metaData.TryGetValue(invNum, out var invt) && invt.GetById("(O)ofts.wandCris").Any())
-            {
-                clickConfigTable();
-            }
+                if (Game1.player.currentLocation.Objects.TryGetValue(Game1.player.GetGrabTile(), out var obj)
+                    && obj.QualifiedItemId == "(BC)ofts.toolConfig")
+                {
+                    clickConfigTable();
+                }
+                else if (Game1.player.ActiveItem != null && TryGetValue("ofts.toolAss.id", out string invId)
+                    && long.TryParse(invId, out long invNum)
+                    && metaData.TryGetValue(invNum, out var invt) && invt.GetById("(O)ofts.wandCris").Any())
+                {
+                    clickConfigTable();
+                }
+            }            
         }
 
         public int assignNewInventory(Item tool)
