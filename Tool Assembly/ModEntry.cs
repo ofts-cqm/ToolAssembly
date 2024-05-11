@@ -27,7 +27,8 @@ namespace Tool_Assembly
         public static readonly NetLongDictionary<int, NetInt> indices = new();
         public static readonly NetInt topIndex = new();
         public static readonly NetStringHashSet items = new() { "(O)ofts.wandCris" };
-        public static IModHelper _Helper;
+        public static IModHelper? _Helper = null;
+        public static IMonitor? _Monitor = null;
 
         public override void Entry(IModHelper helper)
         {
@@ -44,6 +45,7 @@ namespace Tool_Assembly
             Helper.ConsoleCommands.Add("tool", "", command);
             Config = Helper.ReadConfig<ModConfig>();
             _Helper = helper;
+            _Monitor = Monitor;
         }
 
         public bool isTool(Item item)

@@ -1,5 +1,6 @@
 ﻿using Microsoft.Xna.Framework;
 using Netcode;
+using StardewModdingAPI;
 using StardewValley;
 using StardewValley.Buildings;
 using StardewValley.Inventories;
@@ -18,14 +19,14 @@ namespace Tool_Assembly
         // 3: very very good
         public static Dictionary<string, Func<GameLocation, Vector2, ResourceClump?, Item, int>> switchLogic = new()
         {
-            { "Axe", Axe },
-            { "Pickaxe", PickAxe },
-            { "MeleeWeapon", MeleeWeapon },
-            { "Hoe", Hoe },
-            { "WateringCan", WateringCan },
-            { "Pan", Pan },
-            { "FishingRod", Rod },
-            { "MilkPail",  MilkPail}
+            { "StardewValley.Tools.Axe", Axe },
+            { "StardewValley.Tools.Pickaxe", PickAxe },
+            { "StardewValley.Tools.MeleeWeapon", MeleeWeapon },
+            { "StardewValley.Tools.Hoe", Hoe },
+            { "StardewValley.Tools.WateringCan", WateringCan },
+            { "StardewValley.Tools.Pan", Pan },
+            { "StardewValley.Tools.FishingRod", Rod },
+            { "StardewValley.Tools.MilkPail",  MilkPail}
         };
 
         public static int Shears(GameLocation location, Vector2 position, ResourceClump? clump, Item item)
@@ -134,9 +135,13 @@ namespace Tool_Assembly
                 if (objects.Name == "Artifact Spot") return 2;
                 if (objects.Name == "Seed Spot") return 2;
                 if (objects.Name == "Supply Crate") return 0;
+                else return -1;
             }
 
-            if (location.doesTileHaveProperty((int)position.X, (int)position.Y, "Diggable", "Back") != null) return 1;
+            if (clump != null) return -1;
+            if (location.terrainFeatures.ContainsKey(position)) return -1;
+
+            if (location.doesTileHaveProperty((int)position.X, (int)position.Y, "Diggable", "Back") != null) return 0;
 
             return -1;
         }
@@ -156,8 +161,8 @@ namespace Tool_Assembly
                 {
                     if (character is RockCrab crab)
                     {
-                        var isShellLess = ModEntry._Helper.Reflection.GetField<NetBool>(crab, "shellGone").GetValue().Value;
-                        if (isShellLess)
+                        var isShellLess = ModEntry._Helper?.Reflection.GetField<NetBool>(crab, "shellGone").GetValue().Value;
+                        if (isShellLess == true)
                         {
                             return 2;
                         }
@@ -198,16 +203,20 @@ namespace Tool_Assembly
             {
                 if (terrainFeatures is Tree tree)
                 {
-                    if (tree.growthStage.Value < Tree.treeStage) return 1;
+                    if (tree.growthStage.Value > Tree.treeStage) 
+                        return 2;
                 }
+                if (terrainFeatures is HoeDirt dirt && dirt.crop != null && dirt.crop.dead.Value) return 0;
             }
 
             if (location.Objects.TryGetValue(position, out var objects))
             {
                 if (objects.bigCraftable.Value)
                 {
-                    if (objects.Fragility == 1) return 1;
-                    if (objects.Fragility == 0) return 0;
+                    if (objects.Fragility == 1) 
+                        return 1;
+                    if (objects.Fragility == 0) 
+                        return 0;
                 }
                 if (objects.IsTwig()) return 2;
             }
@@ -240,7 +249,7 @@ namespace Tool_Assembly
 
             if (location.terrainFeatures.TryGetValue(position, out var terrainFeatures))
             {
-                if (terrainFeatures is HoeDirt dirt && dirt.crop != null && !dirt.HasFertilizer()) return 0;
+                if (terrainFeatures is HoeDirt dirt && dirt.crop == null && !dirt.HasFertilizer()) return 0;
             }
 
             if (clump != null && new List<int> { 758, 756, 754, 752, 672, 622, 148 }.Contains(clump.parentSheetIndex.Value))
@@ -254,8 +263,8 @@ namespace Tool_Assembly
                 {
                     if (character is RockCrab crab)
                     {
-                        var isShellLess = ModEntry._Helper.Reflection.GetField<NetBool>(crab, "shellGone").GetValue().Value;
-                        if (!isShellLess)
+                        var isShellLess = ModEntry._Helper?.Reflection.GetField<NetBool>(crab, "shellGone").GetValue().Value;
+                        if (isShellLess == false)
                         {
                             return 2;
                         }
@@ -298,12 +307,15 @@ namespace Tool_Assembly
                 if (switchLogic.TryGetValue(item.GetType().ToString(), out var func2))
                 {
                     float temppiority = func2.Invoke(location, position, clump, item);
+                    //ModEntry._Monitor?.Log($"Calculated Tool Piority for {item.Name} is {temppiority}", LogLevel.Info);
                     if (item is Tool tool) temppiority += tool.UpgradeLevel * 0.1f;
                     if (item is MeleeWeapon weapon) temppiority += weapon.maxDamage.Value * 0.1f;
+                    //ModEntry._Monitor?.Log($"Calculated Adjusted is {temppiority}", LogLevel.Info);
                     if (temppiority > maxPiority)
                     {
                         maxPiority = temppiority;
                         currentItem = item;
+                        //ModEntry._Monitor?.Log($"Selecting {temppiority}", LogLevel.Info);
                     }
                 }
             }
