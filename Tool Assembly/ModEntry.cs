@@ -351,6 +351,12 @@ namespace Tool_Assembly
         
         public void ButtonPressed(object? sender, ButtonPressedEventArgs args)
         {
+            if (Context.IsWorldReady && Game1.activeClickableMenu == null && Config.EnableToolSwichKey.JustPressed())
+            {
+                Config.EnableToolSwich = !Config.EnableToolSwich;
+                Game1.addHUDMessage(new HUDMessage(Helper.Translation.Get("autoswichswiched") + Config.EnableToolSwich.ToString()));
+            }
+
             if (Context.IsWorldReady && Game1.activeClickableMenu == null && Game1.player.ActiveItem != null &&
                 TryGetValue("ofts.toolAss.id", out string id))
             {
