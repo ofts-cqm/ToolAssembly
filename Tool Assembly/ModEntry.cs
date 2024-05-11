@@ -392,7 +392,7 @@ namespace Tool_Assembly
                                     }
                                 }
 
-                                if (keydown)
+                                if (keydown && Config.EnableToolSwich)
                                 {
                                     Game1.player.Items[indexPlayer] = ToolSwitchHandler.GetBestIndex(indices[longid], inventory);
                                 }
