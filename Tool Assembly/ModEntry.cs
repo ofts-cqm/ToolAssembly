@@ -38,7 +38,7 @@ namespace Tool_Assembly
             Helper.Events.GameLoop.SaveCreated += onSaveCreated;
             Helper.Events.GameLoop.SaveLoaded += load;
             Helper.Events.GameLoop.DayEnding += save;
-            Helper.Events.Display.RenderingActiveMenu += injectDestroyButton;
+            Helper.Events.Display.RenderedActiveMenu += injectDestroyButton;
             Helper.Events.GameLoop.ReturnedToTitle += (a, b) => { metaData.Clear(); indices.Clear(); };
             Helper.Events.Display.WindowResized += adjustWindowSize;
             //Helper.Events.GameLoop.DayStarted += debug;
@@ -53,14 +53,14 @@ namespace Tool_Assembly
 
         public void adjustWindowSize(object? sender, WindowResizedEventArgs args)
         {
-            if (Game1.activeClickableMenu is not ItemGrabMenu menu || (menu.context is string strcontext && strcontext != "ofts.toolConfigTable")) return;
+            if (Game1.activeClickableMenu is not ItemGrabMenu menu || menu.context is not string strcontext || !strcontext.Contains("ofts.toolConfigTable")) return;
             destroyButton.bounds.X = menu.xPositionOnScreen + menu.width + 4;
             destroyButton.bounds.Y = menu.yPositionOnScreen + 144;
         }
 
-        public void injectDestroyButton(object? sender, RenderingActiveMenuEventArgs args)
+        public void injectDestroyButton(object? sender, RenderedActiveMenuEventArgs args)
         {
-            if (Game1.activeClickableMenu is not ItemGrabMenu menu || (menu.context is string strcontext && strcontext != "ofts.toolConfigTable")) return;
+            if (Game1.activeClickableMenu is not ItemGrabMenu menu || menu.context is not string strcontext || !strcontext.Contains("ofts.toolConfigTable")) return;
             SpriteBatch b = args.SpriteBatch;
             
             if(destroyButton.containsPoint(Game1.getMouseX(), Game1.getMouseY()))
@@ -179,6 +179,7 @@ namespace Tool_Assembly
 
         public void load(object? sender, SaveLoadedEventArgs args)
         {
+            destroyButton = new(new(0, 0, 64, 64), Game1.mouseCursors, new(268, 471, 16, 16), 4f);
             if (!Context.IsMainPlayer) return;
             metaData.Clear();
             indices.Clear();
@@ -376,6 +377,14 @@ namespace Tool_Assembly
                     };
                 });
             }
+            else if (args.NameWithoutLocale.IsEquivalentTo("Data/Events/WizardHouse"))
+            {
+                args.Edit(asset =>
+                {
+                    IDictionary<string, string> datas = asset.AsDictionary<string, string>().Data;
+                    //datas.Add("ofts.toolass.wizard.giveWandCris/FreeInventorySlots 1/Friendship Wizard 2040/HasItem (T)ofts.toolAss", $"WizardSong/2 14/farmer 3 14 3 Wizard 1 14 1/skippable/pause 1000//speak Wizard {Helper.Translation.Get("wizard.1")}/move Wizard 1 0 1/pause 1000/speak Wizard");
+                });
+            }
         }
         
         public void ButtonPressed(object? sender, ButtonPressedEventArgs args)
@@ -387,14 +396,17 @@ namespace Tool_Assembly
                 return;
             }
 
-            if (Game1.activeClickableMenu is ItemGrabMenu menu && menu.context is string strcontext && strcontext == "ofts.toolConfigTable")
+            if (Game1.activeClickableMenu is ItemGrabMenu menu && menu.context is string strcontext && strcontext.Contains("ofts.toolConfigTable"))
             {
-                if (args.Button == SButton.MouseLeft && destroyButton.containsPoint(Game1.getMouseX(), Game1.getMouseY())) {
+                if (args.Button == SButton.MouseLeft && destroyButton.containsPoint(Game1.getMouseX(), Game1.getMouseY()) && long.TryParse(strcontext.Substring(20), out long idinv)) {
                     Inventory playerinv = Game1.player.Items;
                     playerinv.Remove(Game1.player.ActiveItem);
-                    foreach(Item item in menu.inventory.actualInventory)
+                    
+                    foreach(Item item in metaData[idinv])
                     {
-                        Game1.currentLocation.debris.Add(Game1.createItemDebris(item, Game1.player.Tile, 0));
+                        if (item == null) continue;
+                        Game1.currentLocation.debris.Add(Game1.createItemDebris(item, Game1.player.Position, 0));
+                        item.modData.Remove("ofts.toolAss.id");
                     }
                     if(menu.heldItem != null)
                     {
@@ -543,7 +555,7 @@ namespace Tool_Assembly
                                     i.RemoveEmptySlots();
                                     a.modData.Remove("ofts.toolAss.id");
                                 } 
-                            }, context: "ofts.toolConfigTable"
+                            }, context: $"ofts.toolConfigTable{id}"
                         );
                         Game1.activeClickableMenu = menu;
                         destroyButton.bounds.X = menu.xPositionOnScreen + menu.width + 4;
