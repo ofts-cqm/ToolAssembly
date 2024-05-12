@@ -17,6 +17,8 @@ using GenericModConfigMenu;
 using StardewValley.Tools;
 using StardewValley.GameData.Objects;
 using StardewValley.GameData.Shops;
+using StardewValley.Locations;
+using StardewValley.Characters;
 
 namespace Tool_Assembly
 {
@@ -37,6 +39,7 @@ namespace Tool_Assembly
             Helper.Events.GameLoop.SaveCreated += onSaveCreated;
             Helper.Events.GameLoop.SaveLoaded += load;
             Helper.Events.GameLoop.DayEnding += save;
+            Helper.Events.Display.MenuChanged += menuMonitor;
             Helper.Events.GameLoop.ReturnedToTitle += (a, b) => { metaData.Clear(); indices.Clear(); };
             //Helper.Events.GameLoop.DayStarted += debug;
             Helper.Events.GameLoop.GameLaunched += initAPI;
@@ -46,6 +49,96 @@ namespace Tool_Assembly
             Config = Helper.ReadConfig<ModConfig>();
             _Helper = helper;
             _Monitor = Monitor;
+        }
+
+        public void menuMonitor(object? sender, MenuChangedEventArgs e)
+        {
+            if(e.NewMenu is ShopMenu menu && menu.ShopId == "AdventureShop")
+            {
+                menu.onSell = sellFunc;
+            }
+        }
+
+        public bool sellFunc(ISalable item)
+        {
+            ShopMenu? menu = Game1.activeClickableMenu as ShopMenu;
+            if (menu == null) return false;
+            Vector2 vector = menu.inventory.snapToClickableComponent(Game1.getMouseX(), Game1.getMouseY());
+            TemporaryAnimatedSpriteList animations = Helper.Reflection.GetField<TemporaryAnimatedSpriteList>(menu, "animations").GetValue();
+
+            int num = (int)(item.sellToStorePrice(-1L) * Helper.Reflection.GetField<float>(menu, "sellPercentage").GetValue());
+            ShopMenu.chargePlayer(Game1.player, menu.currency, -num * item.Stack);
+            int num2 = item.Stack / 8 + 2;
+            for (int j = 0; j < num2; j++)
+            {
+                animations.Add(new TemporaryAnimatedSprite("TileSheets\\debris", new Rectangle(Game1.random.Next(2) * 16, 64, 16, 16), 9999f, 1, 999, vector + new Vector2(32f, 32f), flicker: false, flipped: false)
+                {
+                    alphaFade = 0.025f,
+                    motion = new Vector2(Game1.random.Next(-3, 4), -4f),
+                    acceleration = new Vector2(0f, 0.5f),
+                    delayBeforeAnimationStart = j * 25,
+                    scale = 2f
+                });
+                animations.Add(new TemporaryAnimatedSprite("TileSheets\\debris", new Rectangle(Game1.random.Next(2) * 16, 64, 16, 16), 9999f, 1, 999, vector + new Vector2(32f, 32f), flicker: false, flipped: false)
+                {
+                    scale = 4f,
+                    alphaFade = 0.025f,
+                    delayBeforeAnimationStart = j * 50,
+                    motion = Utility.getVelocityTowardPoint(new Point((int)vector.X + 32, (int)vector.Y + 32), new Vector2(menu.xPositionOnScreen - 36, menu.yPositionOnScreen + menu.height - menu.inventory.height - 16), 8f),
+                    acceleration = Utility.getVelocityTowardPoint(new Point((int)vector.X + 32, (int)vector.Y + 32), new Vector2(menu.xPositionOnScreen - 36, menu.yPositionOnScreen + menu.height - menu.inventory.height - 16), 0.5f)
+                });
+            }
+
+            ISalable? salable = null;
+            if (menu.CanBuyback() && item.QualifiedItemId != "(T)ofts.toolAss")
+            {
+                salable = menu.AddBuybackItem(item, num, item.Stack);
+            }
+
+            StardewValley.Object? @object = item as StardewValley.Object;
+            if (@object != null && @object.Edibility != -300)
+            {
+                Item one = @object.getOne();
+                one.Stack = @object.Stack;
+                if (salable != null && menu.buyBackItemsToResellTomorrow.TryGetValue(salable, out var value))
+                {
+                    value.Stack += @object.Stack;
+                }
+                else
+                {
+                    ShopLocation? shopLocation = Game1.currentLocation as ShopLocation;
+                    if (shopLocation != null)
+                    {
+                        if (salable != null)
+                        {
+                            menu.buyBackItemsToResellTomorrow[salable] = one;
+                        }
+
+                        shopLocation.itemsToStartSellingTomorrow.Add(one);
+                    }
+                }
+            }
+
+            if(item.QualifiedItemId == "(T)toolAss" && item is Tool t && 
+                t.modData.TryGetValue("ofts.toolAss.id", out string idstr) && 
+                long.TryParse(idstr, out long id) && metaData.TryGetValue(id, out Inventory inv))
+            {
+                foreach(Item tmp in inv)
+                {
+                    Game1.currentLocation.debris.Add(Game1.createItemDebris(tmp, Game1.player.Position, 0));
+                }
+            }
+
+            Game1.playSound("sell");
+            Game1.playSound("purchase");
+            if (menu.inventory.getItemAt(Game1.getMouseX(), Game1.getMouseY()) == null)
+            {
+                animations.Add(new TemporaryAnimatedSprite(5, vector + new Vector2(32f, 32f), Color.White)
+                {
+                    motion = new Vector2(0f, -0.5f)
+                });
+            }
+            return true;
         }
 
         public bool isTool(Item item)
@@ -290,6 +383,7 @@ namespace Tool_Assembly
                         ItemId = "(O)ofts.wandCris",
                     };
                     data.Items.Add(cris);
+                    data.SalableItemTags.Add("id_(T)ofts.toolAss");
                 });
             }
             else if (args.NameWithoutLocale.IsEquivalentTo("Data/CraftingRecipes"))

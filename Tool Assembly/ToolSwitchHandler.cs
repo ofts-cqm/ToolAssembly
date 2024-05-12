@@ -31,8 +31,6 @@ namespace Tool_Assembly
 
         public static int Shears(GameLocation location, Vector2 position, ResourceClump? clump, Item item)
         {
-            string[] animalsThatCanBeMilked = { "Goat", "Cow" };
-
             foreach (FarmAnimal animal in location.getAllFarmAnimals())
             {
                 float distanceToAnimal = Vector2.Distance(position, animal.Tile);
