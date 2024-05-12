@@ -17,8 +17,6 @@ using GenericModConfigMenu;
 using StardewValley.Tools;
 using StardewValley.GameData.Objects;
 using StardewValley.GameData.Shops;
-using StardewValley.Locations;
-using StardewValley.Characters;
 
 namespace Tool_Assembly
 {
@@ -31,6 +29,7 @@ namespace Tool_Assembly
         public static readonly NetStringHashSet items = new() { "(O)ofts.wandCris" };
         public static IModHelper? _Helper = null;
         public static IMonitor? _Monitor = null;
+        public static ClickableTextureComponent destroyButton = new(new(0, 0, 64, 64), Game1.mouseCursors, new(268, 471, 16, 16), 4f);
 
         public override void Entry(IModHelper helper)
         {
@@ -39,8 +38,9 @@ namespace Tool_Assembly
             Helper.Events.GameLoop.SaveCreated += onSaveCreated;
             Helper.Events.GameLoop.SaveLoaded += load;
             Helper.Events.GameLoop.DayEnding += save;
-            Helper.Events.Display.MenuChanged += menuMonitor;
+            Helper.Events.Display.RenderingActiveMenu += injectDestroyButton;
             Helper.Events.GameLoop.ReturnedToTitle += (a, b) => { metaData.Clear(); indices.Clear(); };
+            Helper.Events.Display.WindowResized += adjustWindowSize;
             //Helper.Events.GameLoop.DayStarted += debug;
             Helper.Events.GameLoop.GameLaunched += initAPI;
             Helper.Events.GameLoop.Saving += (a, b) => { Helper.Data.WriteSaveData("ofts.toolInd", topIndex.Value.ToString()); };
@@ -51,94 +51,29 @@ namespace Tool_Assembly
             _Monitor = Monitor;
         }
 
-        public void menuMonitor(object? sender, MenuChangedEventArgs e)
+        public void adjustWindowSize(object? sender, WindowResizedEventArgs args)
         {
-            if(e.NewMenu is ShopMenu menu && menu.ShopId == "AdventureShop")
-            {
-                menu.onSell = sellFunc;
-            }
+            if (Game1.activeClickableMenu is not ItemGrabMenu menu || (menu.context is string strcontext && strcontext != "ofts.toolConfigTable")) return;
+            destroyButton.bounds.X = menu.xPositionOnScreen + menu.width + 4;
+            destroyButton.bounds.Y = menu.yPositionOnScreen + 144;
         }
 
-        public bool sellFunc(ISalable item)
+        public void injectDestroyButton(object? sender, RenderingActiveMenuEventArgs args)
         {
-            ShopMenu? menu = Game1.activeClickableMenu as ShopMenu;
-            if (menu == null) return false;
-            Vector2 vector = menu.inventory.snapToClickableComponent(Game1.getMouseX(), Game1.getMouseY());
-            TemporaryAnimatedSpriteList animations = Helper.Reflection.GetField<TemporaryAnimatedSpriteList>(menu, "animations").GetValue();
-
-            int num = (int)(item.sellToStorePrice(-1L) * Helper.Reflection.GetField<float>(menu, "sellPercentage").GetValue());
-            ShopMenu.chargePlayer(Game1.player, menu.currency, -num * item.Stack);
-            int num2 = item.Stack / 8 + 2;
-            for (int j = 0; j < num2; j++)
+            if (Game1.activeClickableMenu is not ItemGrabMenu menu || (menu.context is string strcontext && strcontext != "ofts.toolConfigTable")) return;
+            SpriteBatch b = args.SpriteBatch;
+            
+            if(destroyButton.containsPoint(Game1.getMouseX(), Game1.getMouseY()))
             {
-                animations.Add(new TemporaryAnimatedSprite("TileSheets\\debris", new Rectangle(Game1.random.Next(2) * 16, 64, 16, 16), 9999f, 1, 999, vector + new Vector2(32f, 32f), flicker: false, flipped: false)
-                {
-                    alphaFade = 0.025f,
-                    motion = new Vector2(Game1.random.Next(-3, 4), -4f),
-                    acceleration = new Vector2(0f, 0.5f),
-                    delayBeforeAnimationStart = j * 25,
-                    scale = 2f
-                });
-                animations.Add(new TemporaryAnimatedSprite("TileSheets\\debris", new Rectangle(Game1.random.Next(2) * 16, 64, 16, 16), 9999f, 1, 999, vector + new Vector2(32f, 32f), flicker: false, flipped: false)
-                {
-                    scale = 4f,
-                    alphaFade = 0.025f,
-                    delayBeforeAnimationStart = j * 50,
-                    motion = Utility.getVelocityTowardPoint(new Point((int)vector.X + 32, (int)vector.Y + 32), new Vector2(menu.xPositionOnScreen - 36, menu.yPositionOnScreen + menu.height - menu.inventory.height - 16), 8f),
-                    acceleration = Utility.getVelocityTowardPoint(new Point((int)vector.X + 32, (int)vector.Y + 32), new Vector2(menu.xPositionOnScreen - 36, menu.yPositionOnScreen + menu.height - menu.inventory.height - 16), 0.5f)
-                });
+                destroyButton.scale = 4.2f;
+                destroyButton.draw(b);
+                destroyButton.scale = 4f;
+                IClickableMenu.drawHoverText(b, Helper.Translation.Get("destroy"), Game1.smallFont);
             }
-
-            ISalable? salable = null;
-            if (menu.CanBuyback() && item.QualifiedItemId != "(T)ofts.toolAss")
+            else
             {
-                salable = menu.AddBuybackItem(item, num, item.Stack);
+                destroyButton.draw(b);
             }
-
-            StardewValley.Object? @object = item as StardewValley.Object;
-            if (@object != null && @object.Edibility != -300)
-            {
-                Item one = @object.getOne();
-                one.Stack = @object.Stack;
-                if (salable != null && menu.buyBackItemsToResellTomorrow.TryGetValue(salable, out var value))
-                {
-                    value.Stack += @object.Stack;
-                }
-                else
-                {
-                    ShopLocation? shopLocation = Game1.currentLocation as ShopLocation;
-                    if (shopLocation != null)
-                    {
-                        if (salable != null)
-                        {
-                            menu.buyBackItemsToResellTomorrow[salable] = one;
-                        }
-
-                        shopLocation.itemsToStartSellingTomorrow.Add(one);
-                    }
-                }
-            }
-
-            if(item.QualifiedItemId == "(T)toolAss" && item is Tool t && 
-                t.modData.TryGetValue("ofts.toolAss.id", out string idstr) && 
-                long.TryParse(idstr, out long id) && metaData.TryGetValue(id, out Inventory inv))
-            {
-                foreach(Item tmp in inv)
-                {
-                    Game1.currentLocation.debris.Add(Game1.createItemDebris(tmp, Game1.player.Position, 0));
-                }
-            }
-
-            Game1.playSound("sell");
-            Game1.playSound("purchase");
-            if (menu.inventory.getItemAt(Game1.getMouseX(), Game1.getMouseY()) == null)
-            {
-                animations.Add(new TemporaryAnimatedSprite(5, vector + new Vector2(32f, 32f), Color.White)
-                {
-                    motion = new Vector2(0f, -0.5f)
-                });
-            }
-            return true;
         }
 
         public bool isTool(Item item)
@@ -449,6 +384,27 @@ namespace Tool_Assembly
             {
                 Config.EnableToolSwich = !Config.EnableToolSwich;
                 Game1.addHUDMessage(new HUDMessage(Helper.Translation.Get("autoswichswiched") + Config.EnableToolSwich.ToString()));
+                return;
+            }
+
+            if (Game1.activeClickableMenu is ItemGrabMenu menu && menu.context is string strcontext && strcontext == "ofts.toolConfigTable")
+            {
+                if (args.Button == SButton.MouseLeft && destroyButton.containsPoint(Game1.getMouseX(), Game1.getMouseY())) {
+                    Inventory playerinv = Game1.player.Items;
+                    playerinv.Remove(Game1.player.ActiveItem);
+                    foreach(Item item in menu.inventory.actualInventory)
+                    {
+                        Game1.currentLocation.debris.Add(Game1.createItemDebris(item, Game1.player.Tile, 0));
+                    }
+                    if(menu.heldItem != null)
+                    {
+                        Game1.currentLocation.debris.Add(Game1.createItemDebris(menu.heldItem, Game1.player.Tile, 0));
+                        menu.heldItem = null;
+                    }
+                    menu.exitThisMenu(true);
+                    Game1.activeClickableMenu = null;
+                    return;
+                }
             }
 
             if (Context.IsWorldReady && Game1.activeClickableMenu == null && Game1.player.ActiveItem != null &&
@@ -552,7 +508,7 @@ namespace Tool_Assembly
                     Game1.player.Items[Game1.player.CurrentToolIndex] = it;
                     Game1.delayedActions.Add(new DelayedAction(10, () => 
                     { 
-                        Game1.activeClickableMenu = new ItemGrabMenu(
+                        ItemGrabMenu menu = new ItemGrabMenu(
                             inventory: i, 
                             reverseGrab: false, showReceivingMenu: true, (item) => {
                                 if (item == null) return true;
@@ -587,8 +543,12 @@ namespace Tool_Assembly
                                     i.RemoveEmptySlots();
                                     a.modData.Remove("ofts.toolAss.id");
                                 } 
-                            }
+                            }, context: "ofts.toolConfigTable"
                         );
+                        Game1.activeClickableMenu = menu;
+                        destroyButton.bounds.X = menu.xPositionOnScreen + menu.width + 4;
+                        destroyButton.bounds.Y = menu.yPositionOnScreen + 144;
+                        //xPositionOnScreen + width + 4, yPositionOnScreen + height - 192 - IClickableMenu.borderWidth
                     }));
                 }
             }
