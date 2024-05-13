@@ -74,6 +74,7 @@ namespace Tool_Assembly
             {
                 destroyButton.draw(b);
             }
+            menu.drawMouse(b);
         }
 
         public bool isTool(Item item)
@@ -131,6 +132,14 @@ namespace Tool_Assembly
                 setValue: value => Config.EnableToolSwich = value,
                 name: () => Helper.Translation.Get("toolswich")
             );
+
+            configMenu.AddBoolOption(
+                mod: ModManifest,
+                getValue: () => Config.StoryMode,
+                setValue: value => Config.StoryMode = value,
+                name: () => Helper.Translation.Get("storyMode"),
+                tooltip: () => Helper.Translation.Get("storyModeDesc")
+            );
         }
 
         public override object? GetApi()
@@ -160,19 +169,12 @@ namespace Tool_Assembly
                 {
                     if (metaData.ContainsKey(i * 128 + j))
                     {
-                        if (location.Objects.TryGetValue(new Vector2(i, j), out var tmp) && tmp is Chest chest)
-                        {
-                            chest.Items.Clear();
-                            chest.Items.AddRange(metaData[i * 128 + j]);
-                        }
-                        else
-                        {
-                            Chest chest2 = new(true);
-                            chest2.TileLocation = new Vector2(i, j);
-                            chest2.Items.AddRange(metaData[i * 128 + j]);
-                            location.Objects.Add(chest2.TileLocation, chest2);
-                        }
-                     }
+                        Chest chest2 = new(true);
+                        chest2.TileLocation = new Vector2(i, j);
+                        chest2.Items.AddRange(metaData[i * 128 + j]);
+                        location.Objects.Remove(chest2.TileLocation);
+                        location.Objects[chest2.TileLocation] = chest2;
+                    }
                 }
             }
         }
@@ -276,7 +278,8 @@ namespace Tool_Assembly
                         Texture = "toolAss/asset/texture",
                         SpriteIndex = 26,
                         CanBeGivenAsGift = false,
-                        ExcludeFromShippingCollection = true
+                        ExcludeFromShippingCollection = true,
+                        ContextTags = new() { "ofts.toolass.toolRelated" }
                     };
                     datas.Add("ofts.wandCris", data); ;
                 });
@@ -296,6 +299,7 @@ namespace Tool_Assembly
                         IsLamp = false,
                         Texture = "toolAss/asset/texture",
                         SpriteIndex = 6,
+                        ContextTags = new() { "ofts.toolass.toolRelated" }
                     };
                     datas.Add("ofts.toolConfig", data);
                 });
@@ -309,7 +313,81 @@ namespace Tool_Assembly
                     {
                         ShopData wizard = new()
                         {
-
+                            Currency = 0,
+                            StackSizeVisibility = StackSizeVisibility.ShowIfMultiple,
+                            OpenSound = "dwop",
+                            PurchaseSound = "purchaseClick",
+                            PurchaseRepeatSound = "purchaseRepeat",
+                            PriceModifiers = new(),
+                            Owners = new()
+                            {
+                                new()
+                                {
+                                    Portrait = "Wizard",
+                                    Name = "Wizard",
+                                    Id = "Wizard",
+                                    Dialogues = new()
+                                    {
+                                        new()
+                                        {
+                                            Id = "Wizard_Dialogue",
+                                            Dialogue = "[LocalizedText Strings\\ofts_toolass:dialogue]",
+                                            Condition = "PLAYER_HAS_MAIL Current ofts.toolass.seenWizardShop received",
+                                        },
+                                        new()
+                                        {
+                                            Id = "Wizard_Dialogue_First",
+                                            Dialogue = "[LocalizedText Strings\\ofts_toolass:dialogue1]",
+                                            Condition = "!PLAYER_HAS_MAIL Current ofts.toolass.seenWizardShop received",
+                                        }
+                                    }
+                                }
+                            },
+                            VisualTheme = new()
+                            {
+                                new()
+                                {
+                                    WindowBorderTexture =  "LooseSprites\\Cursors2",
+                                    WindowBorderSourceRect = new(0, 256, 18, 18),
+                                    ItemRowBackgroundTexture = "LooseSprites\\Cursors2",
+                                    ItemRowBackgroundSourceRect = new (18, 256, 15, 15),
+                                    ItemRowBackgroundHoverColor = "Blue",
+                                    ItemRowTextColor = "White",
+                                    ItemIconBackgroundTexture = "LooseSprites\\Cursors2",
+                                    ItemIconBackgroundSourceRect = new(33, 256, 18, 18)
+                                }
+                            },
+                            SalableItemTags = new() { "ofts.toolass.toolRelated" },
+                            Items = new()
+                            {
+                                new()
+                                {
+                                    ItemId = "(T)ofts.toolAss",
+                                    Id = "ofts.toolass.shopitems.tool",
+                                    AvailableStock = 1,
+                                    AvailableStockLimit = LimitedStockMode.Global,
+                                    UseObjectDataPrice = true,
+                                    ActionsOnPurchase = new() { "AddMail Current ofts.toolass.seenWizardShop received" }
+                                },
+                                new()
+                                {
+                                    ItemId = "(BC)ofts.toolConfig",
+                                    Id = "ofts.toolass.shopitems.bc",
+                                    AvailableStock = 1,
+                                    AvailableStockLimit = LimitedStockMode.Global,
+                                    UseObjectDataPrice = true,
+                                    ActionsOnPurchase = new() { "AddMail Current ofts.toolass.seenWizardShop received" }
+                                },
+                                new()
+                                {
+                                    ItemId = "(O)ofts.wandCris",
+                                    Id = "ofts.toolass.shopitems.o",
+                                    AvailableStock = 1,
+                                    AvailableStockLimit = LimitedStockMode.Global,
+                                    UseObjectDataPrice = true,
+                                    ActionsOnPurchase = new() { "AddMail Current ofts.toolass.seenWizardShop received" }
+                                }
+                            }
                         };
                         datas.Add("ofts.toolass.wizardshop", wizard);
                     }
@@ -360,7 +438,9 @@ namespace Tool_Assembly
                         { "display_tool", Helper.Translation.Get("display_tool") },
                         { "descrip_tool", Helper.Translation.Get("descrip_tool") },
                         { "display_cris", Helper.Translation.Get("display_cris") },
-                        { "descrip_cris", Helper.Translation.Get("descrip_cris") }
+                        { "descrip_cris", Helper.Translation.Get("descrip_cris") },
+                        { "dialogue", Helper.Translation.Get("dialogue") },
+                        { "dialogue1", Helper.Translation.Get("dialogue1") }
                     };
                 }, AssetLoadPriority.Low);
             }
@@ -409,8 +489,27 @@ namespace Tool_Assembly
                     );
                 });
             }
+            else if (args.NameWithoutLocale.IsEquivalentTo("Maps/WizardHouse"))
+            {
+                if (Config.StoryMode)
+                {
+                    args.Edit(asset =>
+                    {
+                        asset.AsMap().PatchMap(
+                            Helper.ModContent.Load<Map>("assets\\map.tmx"),
+                            sourceArea: new(122, 125, 6, 3),
+                            targetArea: new(1, 16, 6, 3),
+                            patchMode: PatchMapMode.Overlay
+                        );
+                        var a = asset.AsMap().Data;
+                        a.GetLayer("Buildings").Tiles.Array[3, 18].Properties.Add("Action", "OpenShop ofts.toolass.wizardshop");
+                        a.GetLayer("Buildings").Tiles.Array[4, 18].Properties.Add("Action", "OpenShop ofts.toolass.wizardshop");
+                        a.GetLayer("Buildings").Tiles.Array[2, 18].Properties.Add("Action", "None");
+                    });
+                }
+            }
         }
-        
+
         public void ButtonPressed(object? sender, ButtonPressedEventArgs args)
         {
             if (Context.IsWorldReady && Game1.activeClickableMenu == null && Config.EnableToolSwichKey.JustPressed())
@@ -422,17 +521,26 @@ namespace Tool_Assembly
 
             if (Game1.activeClickableMenu is ItemGrabMenu menu && menu.context is string strcontext && strcontext.Contains("ofts.toolConfigTable"))
             {
-                if (args.Button == SButton.MouseLeft && destroyButton.containsPoint(Game1.getMouseX(), Game1.getMouseY()) && long.TryParse(strcontext.Substring(20), out long idinv)) {
+                if (args.Button == SButton.MouseLeft && destroyButton.containsPoint(Game1.getMouseX(), Game1.getMouseY()) && long.TryParse(strcontext.Substring(20), out long idinv))
+                {
                     Inventory playerinv = Game1.player.Items;
                     playerinv.Remove(Game1.player.ActiveItem);
-                    
-                    foreach(Item item in metaData[idinv])
+
+                    if (!metaData.ContainsKey(idinv))
                     {
-                        if (item == null) continue;
-                        Game1.currentLocation.debris.Add(Game1.createItemDebris(item, Game1.player.Position, 0));
-                        item.modData.Remove("ofts.toolAss.id");
+                        Monitor.Log("Error: The given id does not present. This tool may be damaged. Resetting tool id. You can find your lost items in the lost and found office if any", LogLevel.Error);
+                        Inventory inv = new();
+                        inv.AddRange(new List<Item>(36));
+                        metaData.TryAdd(idinv, inv);
+                        indices.TryAdd(idinv, 0);
                     }
-                    if(menu.heldItem != null)
+                    else foreach (Item item in metaData[idinv])
+                        {
+                            if (item == null) continue;
+                            Game1.currentLocation.debris.Add(Game1.createItemDebris(item, Game1.player.Position, 0));
+                            item.modData.Remove("ofts.toolAss.id");
+                        }
+                    if (menu.heldItem != null)
                     {
                         Game1.currentLocation.debris.Add(Game1.createItemDebris(menu.heldItem, Game1.player.Tile, 0));
                         menu.heldItem = null;
@@ -446,7 +554,7 @@ namespace Tool_Assembly
             if (Context.IsWorldReady && Game1.activeClickableMenu == null && Game1.player.ActiveItem != null &&
                 TryGetValue("ofts.toolAss.id", out string id))
             {
-                if(long.TryParse(id, out long longid))
+                if (long.TryParse(id, out long longid))
                 {
                     if (metaData.TryGetValue(longid, out var inventory))
                     {
@@ -485,11 +593,19 @@ namespace Tool_Assembly
                             }
                         }
                     }
+                    else
+                    {
+                        Monitor.Log("Error: The given id does not present. This tool may be damaged. Resetting tool id. You can find your lost items in the lost and found office if any", LogLevel.Error);
+                        Inventory inv = new();
+                        inv.AddRange(new List<Item>(36));
+                        metaData.TryAdd(longid, inv);
+                        indices.TryAdd(longid, 0);
+                    }
                 }
             }
 
             bool keyPressed = false;
-            foreach(var key in Game1.options.actionButton)
+            foreach (var key in Game1.options.actionButton)
             {
                 if (args.IsDown(key.ToSButton()))
                 {
@@ -511,7 +627,11 @@ namespace Tool_Assembly
                 {
                     clickConfigTable();
                 }
-            }            
+                else if (Game1.currentLocation.Name == "WizardHouse" && Game1.lastCursorTile == new Vector2(2, 18) && Config.StoryMode)
+                {
+                    clickConfigTable();
+                }
+            }
         }
 
         public int assignNewInventory(Item tool)
@@ -526,10 +646,10 @@ namespace Tool_Assembly
 
         public void clickConfigTable()
         {
-            if (Context.IsWorldReady && Game1.activeClickableMenu == null && Game1.player.ActiveItem != null)
+            if (Context.IsWorldReady && Game1.activeClickableMenu == null)
             {
-                Item tool = Game1.player.ActiveItem;
-                if (isTool(tool) && (
+                Item? tool = Game1.player.ActiveItem;
+                if (tool != null && isTool(tool) && (
                     TryGetValue("ofts.toolAss.id", out string id) || tool.Name == "toolAssembly"))
                 {
                     if (id == ""){
@@ -537,7 +657,14 @@ namespace Tool_Assembly
                         TryGetValue("ofts.toolAss.id", out id);
                     }
 
-                    IInventory i = metaData[long.Parse(id)];
+                    if (!metaData.TryGetValue(long.Parse(id), out var i))
+                    {
+                        Monitor.Log("Error: The given id does not present. This tool may be damaged. Resetting tool id. You can find your lost items in the lost and found office if any", LogLevel.Error);
+                        Inventory inv = new();
+                        inv.AddRange(new List<Item>(36));
+                        metaData.TryAdd(long.Parse(id), inv);
+                        indices.TryAdd(long.Parse(id), 0);
+                    }
 
                     Item it = ItemRegistry.Create("ofts.toolAss");
                     it.modData.Add("ofts.toolAss.id", id);
@@ -586,6 +713,20 @@ namespace Tool_Assembly
                         destroyButton.bounds.Y = menu.yPositionOnScreen + 144;
                         //xPositionOnScreen + width + 4, yPositionOnScreen + height - 192 - IClickableMenu.borderWidth
                     }));
+                }
+                else
+                {
+                    Game1.multipleDialogues(Helper.Translation.Get("requireTool", 
+                        new Dictionary<string, string>() 
+                        {
+                            {
+                                "shopLocation", 
+                                Config.StoryMode ? 
+                                NPC.GetDisplayName("Wizard") : 
+                                GameLocation.GetData("WizardHouse").DisplayName 
+                            } 
+                        }).ToString().Split('*')
+                    );
                 }
             }
         }
