@@ -17,7 +17,6 @@ using GenericModConfigMenu;
 using StardewValley.Tools;
 using StardewValley.GameData.Objects;
 using StardewValley.GameData.Shops;
-using Microsoft.Xna.Framework.Input;
 
 namespace Tool_Assembly
 {
@@ -305,22 +304,34 @@ namespace Tool_Assembly
             {
                 args.Edit(asset => {
                     IDictionary<string, ShopData> datas = asset.AsDictionary<string, ShopData>().Data;
-                    ShopData data = datas["AdventureShop"];
-                    ShopItemData wand = new()
+
+                    if (Config.StoryMode)
                     {
-                        Price = 2000,
-                        Id = "ofts.shop.wand",
-                        ItemId = "(T)ofts.toolAss",
-                    };
-                    data.Items.Add(wand);
-                    ShopItemData cris = new()
+                        ShopData wizard = new()
+                        {
+
+                        };
+                        datas.Add("ofts.toolass.wizardshop", wizard);
+                    }
+                    else
                     {
-                        Price = 20000,
-                        Id = "ofts.shop.cris",
-                        ItemId = "(O)ofts.wandCris",
-                    };
-                    data.Items.Add(cris);
-                    data.SalableItemTags.Add("id_(T)ofts.toolAss");
+                        ShopData data = datas["AdventureShop"];
+                        ShopItemData wand = new()
+                        {
+                            Price = 2000,
+                            Id = "ofts.shop.wand",
+                            ItemId = "(T)ofts.toolAss",
+                        };
+                        data.Items.Add(wand);
+                        ShopItemData cris = new()
+                        {
+                            Price = 20000,
+                            Id = "ofts.shop.cris",
+                            ItemId = "(O)ofts.wandCris",
+                        };
+                        data.Items.Add(cris);
+                        data.SalableItemTags.Add("id_(T)ofts.toolAss");
+                    }
                 });
             }
             else if (args.NameWithoutLocale.IsEquivalentTo("Data/CraftingRecipes"))
@@ -380,6 +391,7 @@ namespace Tool_Assembly
             }
             else if (args.NameWithoutLocale.IsEquivalentTo("Data/Events/WizardHouse"))
             {
+                if(Config.StoryMode)
                 args.Edit(asset =>
                 {
                     IDictionary<string, string> datas = asset.AsDictionary<string, string>().Data;
@@ -586,5 +598,6 @@ namespace Tool_Assembly
         public KeybindList EnableToolSwichKey { get; set; } = KeybindList.Parse("Up");
         public bool GiveToolWhenSaveCreated { get; set; } = true;
         public bool EnableToolSwich { get; set; } = true;
+        public bool StoryMode { get; set; } = true;
     }
 }
