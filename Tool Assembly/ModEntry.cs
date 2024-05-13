@@ -17,6 +17,7 @@ using GenericModConfigMenu;
 using StardewValley.Tools;
 using StardewValley.GameData.Objects;
 using StardewValley.GameData.Shops;
+using Microsoft.Xna.Framework.Input;
 
 namespace Tool_Assembly
 {
@@ -382,7 +383,18 @@ namespace Tool_Assembly
                 args.Edit(asset =>
                 {
                     IDictionary<string, string> datas = asset.AsDictionary<string, string>().Data;
-                    //datas.Add("ofts.toolass.wizard.giveWandCris/FreeInventorySlots 1/Friendship Wizard 2040/HasItem (T)ofts.toolAss", $"WizardSong/2 14/farmer 3 14 3 Wizard 1 14 1/skippable/pause 1000//speak Wizard {Helper.Translation.Get("wizard.1")}/move Wizard 1 0 1/pause 1000/speak Wizard");
+                    datas.Add(
+                        "ofts.toolass.wizard.giveWandCris/FreeInventorySlots 1/Friendship Wizard 2040/HasItem (T)ofts.toolAss",
+
+                        "WizardSong/2 14/farmer 3 14 3 Wizard 1 14 1/skippable/pause 1000/" +
+                        $"speak Wizard \"{Helper.Translation.Get("wizard.1")}\"/" +
+                        "move Wizard 1 0 1/pause 1000/" +
+                        $"speak Wizard \"{Helper.Translation.Get("wizard.2")}\"/" +
+                        $"speak Wizard \"{Helper.Translation.Get("wizard.3")}\"/" +
+                        "pause 1000/itemAboveHead (O)ofts.wandCris/pause 3300/awardFestivalPrize (O)ofts.wandCris/pause 1000/" +
+                        $"speak Wizard \"{Helper.Translation.Get("wizard.4")}\"/" +
+                        $"speak Wizard \"{Helper.Translation.Get("wizard.5")}\"/end"
+                    );
                 });
             }
         }
