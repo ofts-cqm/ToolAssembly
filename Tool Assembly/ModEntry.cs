@@ -27,6 +27,7 @@ namespace Tool_Assembly
         public static readonly NetLongDictionary<int, NetInt> indices = new();
         public static readonly NetInt topIndex = new();
         public static readonly NetStringHashSet items = new() { "(O)ofts.wandCris" };
+        public static readonly PerScreen<bool> inBound = new(() => false);
         public static IModHelper? _Helper = null;
         public static IMonitor? _Monitor = null;
         public static ClickableTextureComponent destroyButton = new(new(0, 0, 64, 64), Game1.mouseCursors, new(268, 471, 16, 16), 4f);
@@ -69,10 +70,12 @@ namespace Tool_Assembly
                 destroyButton.draw(b);
                 destroyButton.scale = 4f;
                 IClickableMenu.drawHoverText(b, Helper.Translation.Get("destroy"), Game1.smallFont);
+                inBound.Value = true;
             }
             else
             {
                 destroyButton.draw(b);
+                inBound.Value = false;
             }
             menu.drawMouse(b);
         }
@@ -181,6 +184,7 @@ namespace Tool_Assembly
         public void load(object? sender, SaveLoadedEventArgs args)
         {
             destroyButton = new(new(0, 0, 64, 64), Game1.mouseCursors, new(268, 471, 16, 16), 4f);
+            inBound.Value = false;
             if (!Context.IsMainPlayer) return;
             metaData.Clear();
             indices.Clear();
@@ -520,7 +524,7 @@ namespace Tool_Assembly
 
             if (Game1.activeClickableMenu is ItemGrabMenu menu && menu.context is string strcontext && strcontext.Contains("ofts.toolConfigTable"))
             {
-                if (args.Button == SButton.MouseLeft && destroyButton.containsPoint(Game1.getMouseX(), Game1.getMouseY()) && long.TryParse(strcontext.Substring(20), out long idinv))
+                if (args.Button == SButton.MouseLeft && inBound.Value && long.TryParse(strcontext.AsSpan(20), out long idinv))
                 {
                     Inventory playerinv = Game1.player.Items;
                     playerinv.Remove(Game1.player.ActiveItem);
@@ -635,9 +639,10 @@ namespace Tool_Assembly
 
         public int assignNewInventory(Item tool)
         {
-            tool.modData.Add("ofts.toolAss.id", $"{topIndex.Value}");
             Inventory inv = new();
             inv.AddRange(new List<Item>(36));
+            while (metaData.ContainsKey(topIndex.Value)) topIndex.Value++;
+            tool.modData.Add("ofts.toolAss.id", $"{topIndex.Value}");
             metaData.Add(topIndex.Value, inv);
             indices.Add(topIndex.Value++, 0);
             return topIndex.Value - 1;
