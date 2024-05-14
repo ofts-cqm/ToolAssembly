@@ -169,8 +169,7 @@ namespace Tool_Assembly
                 {
                     if (metaData.ContainsKey(i * 128 + j))
                     {
-                        Chest chest2 = new(true);
-                        chest2.TileLocation = new Vector2(i, j);
+                        Chest chest2 = new(true, new Vector2(i, j));
                         chest2.Items.AddRange(metaData[i * 128 + j]);
                         location.Objects.Remove(chest2.TileLocation);
                         location.Objects[chest2.TileLocation] = chest2;
